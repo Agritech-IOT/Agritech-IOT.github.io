@@ -77,33 +77,33 @@
 </head>
 <body>
 
-  <header>
+  <header id="header">
     🌡️ IoT Environment Dashboard
   </header>
 
   <nav>
-    <a href="index.html">Dashboard</a>
-    <a href="about.html">About Project</a>
+    <a href="index.html" id="nav-dashboard">Dashboard</a>
+    <a href="about.html" id="nav-about">About Project</a>
   </nav>
 
   <div class="container">
     <div class="card">
-      <h2>Temperature</h2>
+      <h2 id="temp-title">Temperature</h2>
       <p id="temp">-- °C</p>
     </div>
     <div class="card">
-      <h2>Humidity</h2>
+      <h2 id="hum-title">Humidity</h2>
       <p id="hum">-- %</p>
     </div>
   </div>
 
   <div id="ai-box">
-    <h2>AI Insights</h2>
+    <h2 id="ai-title">AI Insights</h2>
     <p id="ai-text">Loading AI analysis...</p>
   </div>
 
   <div>
-    <label>🌐 Language:</label>
+    <label for="lang">🌐 Language:</label>
     <select id="lang">
       <option value="en">English</option>
       <option value="hi">हिन्दी</option>
@@ -111,65 +111,62 @@
     </select>
   </div>
 
-  <footer>
+  <footer id="footer">
     DHT11 IoT Project © 2025 | Team [Edit Your Name]
   </footer>
 
   <script>
-    const channelID = "3118657";
-    const readAPIKey = "UH1LTJ16P4A5RXR4";
-
-    async function fetchData() {
-      try {
-        const response = await fetch(`https://api.thingspeak.com/channels/${channelID}/feeds.json?api_key=${readAPIKey}&results=1`);
-        const data = await response.json();
-        const latest = data.feeds[data.feeds.length - 1];
-        const temp = latest.field1;
-        const hum = latest.field2;
-
-        document.getElementById("temp").textContent = temp + " °C";
-        document.getElementById("hum").textContent = hum + " %";
-
-        getAIInsights(temp, hum);
-      } catch (err) {
-        console.error("Error fetching data:", err);
+    // Translation dictionary
+    const translations = {
+      en: {
+        header: "🌡️ IoT Environment Dashboard",
+        navDashboard: "Dashboard",
+        navAbout: "About Project",
+        tempTitle: "Temperature",
+        humTitle: "Humidity",
+        aiTitle: "AI Insights",
+        aiText: "Loading AI analysis...",
+        footer: "DHT11 IoT Project © 2025 | Team [Edit Your Name]"
+      },
+      hi: {
+        header: "🌡️ आईओटी पर्यावरण डैशबोर्ड",
+        navDashboard: "डैशबोर्ड",
+        navAbout: "परियोजना के बारे में",
+        tempTitle: "तापमान",
+        humTitle: "नमी",
+        aiTitle: "एआई विश्लेषण",
+        aiText: "एआई विश्लेषण लोड हो रहा है...",
+        footer: "DHT11 IoT परियोजना © 2025 | टीम [अपना नाम डालें]"
+      },
+      ta: {
+        header: "🌡️ ஐஓடி சுற்றுச்சூழல் டாஷ்போர்டு",
+        navDashboard: "டாஷ்போர்டு",
+        navAbout: "ப்ராஜெக்ட் பற்றி",
+        tempTitle: "வெப்பநிலை",
+        humTitle: " ஈரப்பதம்",
+        aiTitle: "ஏஐ பகுப்பாய்வு",
+        aiText: "ஏஐ பகுப்பாய்வு ஏற்றப்படுகிறது...",
+        footer: "DHT11 ஐஓடி திட்டம் © 2025 | குழு [உங்கள் பெயரை பதிக்கவும்]"
       }
+    };
+
+    function updateLanguage(lang) {
+      document.getElementById("header").textContent = translations[lang].header;
+      document.getElementById("nav-dashboard").textContent = translations[lang].navDashboard;
+      document.getElementById("nav-about").textContent = translations[lang].navAbout;
+      document.getElementById("temp-title").textContent = translations[lang].tempTitle;
+      document.getElementById("hum-title").textContent = translations[lang].humTitle;
+      document.getElementById("ai-title").textContent = translations[lang].aiTitle;
+      document.getElementById("ai-text").textContent = translations[lang].aiText;
+      document.getElementById("footer").textContent = translations[lang].footer;
     }
 
-    async function getAIInsights(temp, hum) {
-      const lang = document.getElementById("lang").value;
-      let prompt = "";
+    document.getElementById("lang").addEventListener("change", function() {
+      updateLanguage(this.value);
+    });
 
-      if(lang === "hi") {
-        prompt = `इस तापमान ${temp} और नमी ${hum} के आधार पर वातावरण के बारे में एक छोटा विश्लेषण लिखें।`;
-      } else if(lang === "ta") {
-        prompt = `இந்த வெப்பநிலை ${temp} மற்றும் ஈரப்பதம் ${hum}% அடிப்படையில் சுற்றுச்சூழல் பற்றிய ஒரு சுருக்கமான பகுப்பாய்வை எழுதுக.`;
-      } else {
-        prompt = `Based on temperature ${temp}°C and humidity ${hum}%, give a short analysis of the environment.`;
-      }
-
-      try {
-        const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=YOUR_GEMINI_API_KEY", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
-        });
-
-        const result = await response.json();
-        const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text || "AI could not generate insight.";
-        document.getElementById("ai-text").textContent = aiText;
-      } catch (error) {
-        document.getElementById("ai-text").textContent = "Error loading AI insights.";
-      }
-    }
-
-    fetchData();
-    setInterval(fetchData, 15000);
-
-    document.getElementById("lang").addEventListener("change", fetchData);
+    // Initialize language
+    updateLanguage("en");
   </script>
 </body>
 </html>
-
