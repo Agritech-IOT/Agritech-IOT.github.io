@@ -111,8 +111,6 @@ navDashboard: "Dashboard",
 navAbout: "About Project",
 tempTitle: "Temperature",
 humTitle: "Humidity",
-aiTitle: "AI Insights",
-aiText: "Loading AI analysis...",
 footer: "Robotopia Project 2025 by Team DAV BGPM"
 },
 hi: {
@@ -121,8 +119,6 @@ navDashboard: "डैशबोर्ड",
 navAbout: "परियोजना के बारे में",
 tempTitle: "तापमान",
 humTitle: "नमी",
-aiTitle: "एआई विश्लेषण",
-aiText: "एआई विश्लेषण लोड हो रहा है...",
 footer: "Robotopia Project 2025 by Team DAV BGPM"
 },
 ta: {
@@ -131,8 +127,6 @@ navDashboard: "டாஷ்போர்டு",
 navAbout: "ப்ராஜெக்ட் பற்றி",
 tempTitle: "வெப்பநிலை",
 humTitle: " ஈரப்பதம்",
-aiTitle: "ஏஐ பகுப்பாய்வு",
-aiText: "ஏஐ பகுப்பாய்வு ஏற்றப்படுகிறது...",
 footer: "Robotopia Project 2025 by Team DAV BGPM"
 }
 };
@@ -143,8 +137,6 @@ document.getElementById("nav-dashboard").textContent = translations[lang].navDas
 document.getElementById("nav-about").textContent = translations[lang].navAbout;
 document.getElementById("temp-title").textContent = translations[lang].tempTitle;
 document.getElementById("hum-title").textContent = translations[lang].humTitle;
-document.getElementById("ai-title").textContent = translations[lang].aiTitle;
-document.getElementById("ai-text").textContent = translations[lang].aiText;
 document.getElementById("footer").textContent = translations[lang].footer;
 }
 
@@ -159,41 +151,9 @@ const hum = latest.field2;
 document.getElementById("temp").textContent = temp + " °C";
 document.getElementById("hum").textContent = hum + " %";
 
-getAIInsights(temp, hum);
 } catch (err) {
 console.error("Error fetching data:", err);
 document.getElementById("ai-text").textContent = "Error fetching sensor data.";
-}
-}
-
-async function getAIInsights(temp, hum) {
-const lang = document.getElementById("lang").value;
-let prompt = "";
-
-if(lang === "hi") {
-prompt = `इस तापमान ${temp}°C और नमी ${hum}% के आधार पर वातावरण के बारे में एक छोटा विश्लेषण लिखें।`;
-} else if(lang === "ta") {
-prompt = `இந்த வெப்பநிலை ${temp}°C மற்றும் ஈரப்பதம் ${hum}% அடிப்படையில் சுற்றுச்சூழல் பற்றிய ஒரு சுருக்கமான பகுப்பாய்வை எழுதுக.`;
-} else {
-prompt = `Based on temperature ${temp}°C and humidity ${hum}%, give a short analysis of the environment.`;
-}
-
-try {
-const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${AIzaSyCBERPpsVpvqSwDrfmF-Jm5X60fw3mJ-kU}`, {
-method: "POST",
-headers: { "Content-Type": "application/json" },
-body: JSON.stringify({
-prompt: prompt,
-max_output_tokens: 150
-})
-});
-
-const result = await response.json();
-const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text || "AI could not generate insight.";
-document.getElementById("ai-text").textContent = aiText;
-} catch (error) {
-console.error("Error fetching AI insights:", error);
-document.getElementById("ai-text").textContent = "Error loading AI insights.";
 }
 }
 
