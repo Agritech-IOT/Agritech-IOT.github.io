@@ -85,12 +85,11 @@ IoT Environment Dashboard
 <p id="temp">-- °C</p>
 </div>
   
-  <div class="card">
+<div class="card">
 <h2 id="hum-title">Humidity</h2>
 <p id="hum">-- %</p>
 </div>
 </div>
-
 
 <div>
 <label for="lang"> Language:</label>
@@ -118,6 +117,8 @@ navDashboard: "Dashboard",
 navAbout: "About Project",
 tempTitle: "Temperature",
 humTitle: "Humidity",
+aiTitle: "AI Insights",
+aiText: "Loading AI analysis...",
 footer: "Robotopia Project 2025 by Team DAV BGPM"
 },
 hi: {
@@ -126,6 +127,8 @@ navDashboard: "डैशबोर्ड",
 navAbout: "परियोजना के बारे में",
 tempTitle: "तापमान",
 humTitle: "नमी",
+aiTitle: "एआई विश्लेषण",
+aiText: "एआई विश्लेषण लोड हो रहा है...",
 footer: "Robotopia Project 2025 by Team DAV BGPM"
 },
 ta: {
@@ -134,6 +137,8 @@ navDashboard: "டாஷ்போர்டு",
 navAbout: "ப்ராஜெக்ட் பற்றி",
 tempTitle: "வெப்பநிலை",
 humTitle: " ஈரப்பதம்",
+aiTitle: "ஏஐ பகுப்பாய்வு",
+aiText: "ஏஐ பகுப்பாய்வு ஏற்றப்படுகிறது...",
 footer: "Robotopia Project 2025 by Team DAV BGPM"
 }
 };
@@ -144,6 +149,8 @@ document.getElementById("nav-dashboard").textContent = translations[lang].navDas
 document.getElementById("nav-about").textContent = translations[lang].navAbout;
 document.getElementById("temp-title").textContent = translations[lang].tempTitle;
 document.getElementById("hum-title").textContent = translations[lang].humTitle;
+document.getElementById("ai-title").textContent = translations[lang].aiTitle;
+document.getElementById("ai-text").textContent = translations[lang].aiText;
 document.getElementById("footer").textContent = translations[lang].footer;
 }
 
@@ -163,6 +170,7 @@ console.error("Error fetching data:", err);
 document.getElementById("ai-text").textContent = "Error fetching sensor data.";
 }
 }
+
 
 fetchData();
 setInterval(fetchData, 15000);
