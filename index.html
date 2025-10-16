@@ -227,110 +227,79 @@ updateLanguage("en");
 
 </body>
 </html>
-<script>
-let synth = window.speechSynthesis;
-let recognition;
-let isListening = false;
+<html>
+<head>
+  <title>DHT11 IoT Dashboard - 3 Language Speech Recognition</title>
+  <style>
+    #output { margin-top: 1em; color: green; }
+    #langLabel { margin-left: 1em; }
+    #langButton { margin-left: 0.5em; }
+  </style>
+</head>
+<body>
+  <h1>DHT11 IoT Dashboard</h1>
+  <button id="startButton">🎤 Start Voice Input</button>
+  <button id="langButton">🌏 Switch Language</button>
+  <span id="langLabel">en-US</span>
+  <div id="output"></div>
 
+  <script>
 
-const micBtn = document.createElement("button");
-micBtn.id = "voice-mic";
-micBtn.textContent = "🎤";
-micBtn.style.position = "fixed";
-micBtn.style.bottom = "70px";
-micBtn.style.right = "25px";
-micBtn.style.fontSize = "2rem";
-micBtn.style.border = "none";
-micBtn.style.background = "#556b2f";
-micBtn.style.color = "white";
-micBtn.style.borderRadius = "50%";
-micBtn.style.width = "56px";
-micBtn.style.height = "56px";
-micBtn.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
-micBtn.title = "Talk to assistant";
-document.body.appendChild(micBtn);
+    const languages = [
+      { code: "en-US", label: "English" },
+      { code: "hi-IN", label: "Hindi" },
+      { code: "ta-IN", label: "Tamil" }
+    ];
+    let langIdx = 0;
 
+    const startButton = document.getElementById("startButton");
+    const langButton = document.getElementById("langButton");
+    const langLabel = document.getElementById("langLabel");
+    const outputDiv = document.getElementById("output");
 
-function speak(text) {
-  if (synth.speaking) synth.cancel();
-  let utter = new SpeechSynthesisUtterance(text);
-  utter.lang = document.getElementById("lang").value === "hi" ? "hi-IN" : (document.getElementById("lang").value === "ta" ? "ta-IN" : "en-US");
-  synth.speak(utter);
-}
-
-
-const aiTextElem = document.getElementById("ai-text");
-let lastText = "";
-const observer = new MutationObserver(() => {
-  let currentText = aiTextElem.textContent;
-  if (currentText && currentText !== lastText && currentText !== "Loading AI analysis..." && !currentText.startsWith("Error")) {
-    speak(currentText);
-    lastText = currentText;
-  }
-});
-observer.observe(aiTextElem, {childList: true});
-
-
-function setupRecognition() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    micBtn.style.display = "none";
-    return;
-  }
-  recognition = new SpeechRecognition();
-  recognition.continuous = false;
-  recognition.interimResults = false;
-  recognition.lang = document.getElementById("lang").value === "hi" ? "hi-IN" : (document.getElementById("lang").value === "ta" ? "ta-IN" : "en-US");
-
-  recognition.onresult = function(event) {
-    const speech = event.results[0][0].transcript.toLowerCase();
-    if (speech.includes("refresh") || speech.includes("update")) {
-      speak("Refreshing the data.");
-      fetchData();
-    } else if (speech.includes("temperature")) {
-      speak(document.getElementById("temp").textContent);
-    } else if (speech.includes("humidity")) {
-      speak(document.getElementById("hum").textContent);
-    } else if (speech.includes("analysis") || speech.includes("insight")) {
-      speak(aiTextElem.textContent);
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition;
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
     } else {
-      speak("Sorry, I didn't catch that. Try saying refresh, temperature, humidity, or analysis.");
+      startButton.disabled = true;
+      langButton.disabled = true;
+      langLabel.textContent = "Not supported";
+      outputDiv.textContent = "Web Speech API not supported in your browser.";
     }
-    isListening = false;
-    micBtn.style.background = "#556b2f";
-  };
 
-  recognition.onerror = function() {
-    isListening = false;
-    micBtn.style.background = "#556b2f";
-  };
+    function updateLanguage() {
+      const current = languages[langIdx];
+      if (recognition) recognition.lang = current.code;
+      langLabel.textContent = current.label + " (" + current.code + ")";
+    }
 
-  recognition.onend = function() {
-    isListening = false;
-    micBtn.style.background = "#556b2f";
-  };
-}
+    startButton.addEventListener("click", () => {
+      if (recognition) {
+        recognition.start();
+        outputDiv.textContent = "Listening in " + languages[langIdx].label + "...";
+      }
+    });
 
+    recognition && (recognition.onresult = function(event) {
+      const transcript = event.results[0][0].transcript;
+      outputDiv.textContent = "You said: " + transcript;
+    });
 
-document.getElementById("lang").addEventListener("change", function() {
-  if (recognition) recognition.lang = this.value === "hi" ? "hi-IN" : (this.value === "ta" ? "ta-IN" : "en-US");
-});
+    recognition && (recognition.onerror = function(event) {
+      outputDiv.textContent = "Error: " + event.error;
+    });
 
+    langButton.addEventListener("click", () => {
+      langIdx = (langIdx + 1) % languages.length;
+      updateLanguage();
+    });
 
-micBtn.addEventListener("click", function() {
-  if (!recognition) setupRecognition();
-  if (!isListening) {
-    recognition.lang = document.getElementById("lang").value === "hi" ? "hi-IN" : (document.getElementById("lang").value === "ta" ? "ta-IN" : "en-US");
-    recognition.start();
-    micBtn.style.background = "#aa2e2e";
-    isListening = true;
-  } else {
-    recognition.stop();
-    micBtn.style.background = "#556b2f";
-    isListening = false;
-  }
-});
+    // Init language on load
+    updateLanguage();
+  </script>
+</body>
+</html>
 
-// Initialize
-setupRecognition();
-</script>
