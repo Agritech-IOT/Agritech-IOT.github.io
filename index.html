@@ -170,7 +170,6 @@ document.getElementById("hum-title").textContent = translations[lang].humTitle;
 document.getElementById("footer").textContent = translations[lang].footer;
 }
 
-// 🔹 Show / dismiss notification
 function showNotification() {
 const box = document.getElementById("notification");
 box.style.display = "block";
@@ -191,7 +190,7 @@ const hum = latest.field2;
 document.getElementById("temp").textContent = temp + " °C";
 document.getElementById("hum").textContent = hum + " %";
 
-if (temp > 30) {
+if (temp > 33) {
 showNotification();
 } else {
 dismissNotification();
