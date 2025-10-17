@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AgritechIoT Dashboard</title>
+<title>AgritechIoT Dashboard with Voice Assistant</title>
 <style>
 body {
 font-family: "Poppins", sans-serif;
@@ -63,6 +63,7 @@ width: 100%;
 font-size: 14px;
 }
 
+
 #notification {
 display: none;
 position: fixed;
@@ -86,6 +87,23 @@ color: white;
 font-size: 16px;
 margin-left: 10px;
 cursor: pointer;
+}
+
+
+#micBtn {
+margin-top: 20px;
+background-color: #9CD25F;
+border: none;
+color: white;
+padding: 12px 25px;
+border-radius: 6px;
+font-size: 16px;
+cursor: pointer;
+box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+}
+
+#micBtn.listening {
+background-color: #7cb342;
 }
 </style>
 </head>
@@ -121,6 +139,8 @@ IoT Environment Dashboard
 </select>
 </div>
 
+<button id="micBtn">🎤 Ask Temperature</button>
+
 <div id="notification">
 Temperature exceeding recommended limit
 <button onclick="dismissNotification()">✖</button>
@@ -134,14 +154,20 @@ Robotopia Project 2025 by Team DAV BGPM
 const channelID = "3118657";
 const readAPIKey = "UH1LTJ16P4A5RXR4";
 
+let currentTemp = "--";
+let currentHum = "--";
+let currentLang = "en";
+
 const translations = {
 en: {
-header: " IoT Environment Dashboard",
+header: "IoT Environment Dashboard",
 navDashboard: "Dashboard",
 navAbout: "About Project",
 tempTitle: "Temperature",
 humTitle: "Humidity",
-footer: "Robotopia Project 2025 by Team DAV BGPM"
+footer: "Robotopia Project 2025 by Team DAV BGPM",
+askPhrases: ["what is the temperature", "temperature", "humidity"],
+response: (t, h) => `The current temperature is ${t} degrees Celsius and humidity is ${h} percent.`
 },
 hi: {
 header: "आईओटी पर्यावरण डैशबोर्ड",
@@ -149,19 +175,25 @@ navDashboard: "डैशबोर्ड",
 navAbout: "परियोजना के बारे में",
 tempTitle: "तापमान",
 humTitle: "नमी",
-footer: "Robotopia Project 2025 by Team DAV BGPM"
+footer: "Robotopia Project 2025 by Team DAV BGPM",
+askPhrases: ["तापमान क्या है", "नमी क्या है", "तापमान बताओ"],
+response: (t, h) => `वर्तमान तापमान ${t} डिग्री सेल्सियस और नमी ${h} प्रतिशत है।`
 },
 ta: {
 header: "ஐஓடி சுற்றுச்சூழல் டாஷ்போர்டு",
 navDashboard: "டாஷ்போர்டு",
 navAbout: "ப்ராஜெக்ட் பற்றி",
 tempTitle: "வெப்பநிலை",
-humTitle: " ஈரப்பதம்",
-footer: "Robotopia Project 2025 by Team DAV BGPM"
+humTitle: "ஈரப்பதம்",
+footer: "Robotopia Project 2025 by Team DAV BGPM",
+askPhrases: ["வெப்பநிலை என்ன", "ஈரப்பதம் என்ன", "வெப்பநிலை சொல்லு"],
+response: (t, h) => `தற்போதைய வெப்பநிலை ${t} டிகிரி செல்சியஸ் மற்றும் ஈரப்பதம் ${h} சதவீதம்.`
 }
 };
 
+
 function updateLanguage(lang) {
+currentLang = lang;
 document.getElementById("header").textContent = translations[lang].header;
 document.getElementById("nav-dashboard").textContent = translations[lang].navDashboard;
 document.getElementById("nav-about").textContent = translations[lang].navAbout;
@@ -170,14 +202,14 @@ document.getElementById("hum-title").textContent = translations[lang].humTitle;
 document.getElementById("footer").textContent = translations[lang].footer;
 }
 
-function showNotification() {
-const box = document.getElementById("notification");
-box.style.display = "block";
-}
 
+function showNotification() {
+document.getElementById("notification").style.display = "block";
+}
 function dismissNotification() {
 document.getElementById("notification").style.display = "none";
 }
+
 
 async function fetchData() {
 try {
@@ -187,15 +219,17 @@ const latest = data.feeds[data.feeds.length - 1];
 const temp = parseFloat(latest.field1);
 const hum = latest.field2;
 
+currentTemp = temp;
+currentHum = hum;
+
 document.getElementById("temp").textContent = temp + " °C";
 document.getElementById("hum").textContent = hum + " %";
 
-if (temp > 33) {
+if (temp > 32) {
 showNotification();
 } else {
 dismissNotification();
 }
-
 } catch (err) {
 console.error("Error fetching data:", err);
 }
@@ -203,6 +237,60 @@ console.error("Error fetching data:", err);
 
 fetchData();
 setInterval(fetchData, 15000);
+
+const micBtn = document.getElementById("micBtn");
+let recognition;
+
+if ('webkitSpeechRecognition' in window) {
+recognition = new webkitSpeechRecognition();
+recognition.continuous = false;
+recognition.lang = "en-IN";
+recognition.interimResults = false;
+
+micBtn.addEventListener("click", () => {
+recognition.lang = currentLang === "hi" ? "hi-IN" :
+                   currentLang === "ta" ? "ta-IN" : "en-IN";
+recognition.start();
+micBtn.classList.add("listening");
+micBtn.textContent = "🎧 Listening...";
+});
+
+recognition.onresult = (event) => {
+const transcript = event.results[0][0].transcript.toLowerCase();
+micBtn.classList.remove("listening");
+micBtn.textContent = "🎤 Ask Temperature";
+handleVoiceCommand(transcript);
+};
+
+recognition.onerror = () => {
+micBtn.classList.remove("listening");
+micBtn.textContent = "🎤 Ask Temperature";
+};
+} else {
+micBtn.textContent = "Voice not supported";
+micBtn.disabled = true;
+}
+
+
+function handleVoiceCommand(command) {
+const { askPhrases, response } = translations[currentLang];
+if (askPhrases.some(p => command.includes(p))) {
+speak(response(currentTemp, currentHum));
+} else {
+const msg = currentLang === "hi" ? "मैं समझ नहीं पाया।" :
+            currentLang === "ta" ? "எனக்கு புரியவில்லை." :
+            "I didn’t understand that.";
+speak(msg);
+}
+}
+
+function speak(text) {
+const utterance = new SpeechSynthesisUtterance(text);
+utterance.lang = currentLang === "hi" ? "hi-IN" :
+                 currentLang === "ta" ? "ta-IN" : "en-IN";
+speechSynthesis.speak(utterance);
+}
+
 document.getElementById("lang").addEventListener("change", function() {
 updateLanguage(this.value);
 fetchData(); 
