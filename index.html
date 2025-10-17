@@ -252,19 +252,19 @@ recognition.lang = currentLang === "hi" ? "hi-IN" :
                    currentLang === "ta" ? "ta-IN" : "en-IN";
 recognition.start();
 micBtn.classList.add("listening");
-micBtn.textContent = "🎧 Listening...";
+micBtn.textContent = " Listening...";
 });
 
 recognition.onresult = (event) => {
 const transcript = event.results[0][0].transcript.toLowerCase();
 micBtn.classList.remove("listening");
-micBtn.textContent = "🎤 Ask Temperature";
+micBtn.textContent = " Ask Temperature";
 handleVoiceCommand(transcript);
 };
 
 recognition.onerror = () => {
 micBtn.classList.remove("listening");
-micBtn.textContent = "🎤 Ask Temperature";
+micBtn.textContent = " Ask Temperature";
 };
 } else {
 micBtn.textContent = "Voice not supported";
